@@ -139,7 +139,6 @@ sender.message({this_is: "my data hash"},
 ```ruby
 sender.message({this_is: "my data hash"},
                "some.routing.key",
-               event_uuid: "this is not a valid uuid",
                verbose: true
                )
 ```
