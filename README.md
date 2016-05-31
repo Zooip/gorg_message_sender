@@ -143,6 +143,15 @@ sender.message({this_is: "my data hash"},
                verbose: true
                )
 ```
+###Sending a raw message
+  You can also send any raw string with `send_raw`
+
+```ruby
+sender.send_raw("my message content",
+               "some.routing.key",
+               verbose: true
+               )
+```
 
 ##To Do
  - Bunny error handling

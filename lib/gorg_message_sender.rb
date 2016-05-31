@@ -47,6 +47,16 @@ class GorgMessageSender
     msg
   end
 
+  def send_raw(msg,routing_key,opts={})
+    self.start(verbose: opts[:verbose])
+    p_opts={}
+    p_opts[:routing_key]= routing_key if routing_key
+    @x.publish(msg, p_opts)
+    puts " [#] Message sent to exchange '#{@r_exchange}' (#{@r_durable ? "" : "not "}durable) with routing key '#{routing_key}'" if opts[:verbose]
+    self.stop(verbose: opts[:verbose])
+    msg
+  end
+
   protected
 
   def start(opts)
