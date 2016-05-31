@@ -37,18 +37,19 @@ class GorgMessageSender
   end
 
   def send(data,routing_key,opts={})
-    self.start
+    self.start(verbose: opts[:verbose])
     p_opts={}
     p_opts[:routing_key]= routing_key if routing_key
     msg=message(data,routing_key,opts)
     @x.publish(msg, p_opts)
-    self.stop
+    puts " [#] Message sent to exchange '#{@r_exchange}' (#{@r_durable ? "" : "not "}durable) with routing key '#{routing_key}'" if opts[:verbose]
+    self.stop(verbose: opts[:verbose])
     msg
   end
 
-  private
+  protected
 
-  def start
+  def start(opts)
     @conn||=Bunny.new(
       :hostname => @r_host,
       :port => @r_port,
@@ -59,9 +60,12 @@ class GorgMessageSender
     @conn.start
     ch = @conn.create_channel
     @x  = ch.topic(@r_exchange, :durable => @r_durable)
+    puts " [#] Connected as user '#{@r_user}' to #{@r_host}:#{@r_port} on vhost '#{@r_vhost}'" if opts[:verbose]
+
   end
 
-  def stop
+  def stop(opts)
     @conn.close
+    puts " [#] Connection closed" if opts[:verbose]
   end
 end
