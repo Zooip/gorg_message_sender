@@ -137,9 +137,8 @@ sender.message({this_is: "my data hash"},
 `send`also accepts the `verbose` params to print sending informations in SDOUT
 
 ```ruby
-sender.message({this_is: "my data hash"},
+sender.send({this_is: "my data hash"},
                "some.routing.key",
-               event_uuid: "this is not a valid uuid",
                verbose: true
                )
 ```
