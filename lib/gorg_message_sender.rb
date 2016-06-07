@@ -36,7 +36,7 @@ class GorgMessageSender
     json_msg
   end
 
-  def send(data,routing_key,opts={})
+  def send_message(data,routing_key,opts={})
     self.start(verbose: opts[:verbose])
     p_opts={}
     p_opts[:routing_key]= routing_key if routing_key
