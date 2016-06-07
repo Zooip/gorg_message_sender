@@ -100,12 +100,12 @@ sender.message({this_is: "my data hash"},
 To send a message, use the `send` command. It expects the same params than `message` :
 ```ruby
 sender=GorgMessageSender.new(exchange_name: "my_exchange")
-sender.send({this_is: "my data hash"},"some.routing.key")
+sender.send_message({this_is: "my data hash"},"some.routing.key")
 
 # Message is sent to the exchange "my_exchange" with routing key "some.routing.key"
 # => "{\"event_uuid\":\"095dcff6-665d-4194-bdfe-f889f8cedb09\",\"event_name\":\"some.routing.key\",\"event_creation_time\":\"2016-05-31T08:53:32+02:00\",\"event_sender_id\":\"gms\",\"data\":{\"this_is\":\"my data hash\"}}"
 
-sender.send({this_is: "my data hash"},
+sender.send_message({this_is: "my data hash"},
                "some.routing.key",
                event_uuid: "8c4abe62-26fe-11e6-b67b-9e71128cae77",
                event_creation_time: DateTime.new(2084,05,10,01,57,00),
@@ -116,7 +116,7 @@ sender.send({this_is: "my data hash"},
 # => "{\"event_uuid\":\"8c4abe62-26fe-11e6-b67b-9e71128cae77\",\"event_name\":\"some.routing.key\",\"event_creation_time\":\"2084-05-10T01:57:00+00:00\",\"event_sender_id\":\"some_app_id\",\"data\":{\"this_is\":\"my data hash\"}}"
 
 
-sender.send({this_is: "my data hash"},
+sender.send_message({this_is: "my data hash"},
                "some.routing.key",
                event_uuid: "this is not a valid uuid"
                )
@@ -124,7 +124,7 @@ sender.send({this_is: "my data hash"},
 # => RAISE JSON::Schema::ValidationError
 
 
-sender.message({this_is: "my data hash"},
+sender.message_message({this_is: "my data hash"},
                "some.routing.key",
                event_uuid: "this is not a valid uuid",
                skip_validation: true
@@ -134,10 +134,10 @@ sender.message({this_is: "my data hash"},
 # => "{\"event_uuid\":\"this is not a valid uuid\",\"event_name\":\"some.routing.key\",\"event_creation_time\":\"2016-05-31T09:15:21+02:00\",\"event_sender_id\":\"gms\",\"data\":{\"this_is\":\"my data hash\"}}"
 ```
 
-`send`also accepts the `verbose` params to print sending informations in SDOUT
+`send_message`also accepts the `verbose` params to print sending informations in SDOUT
 
 ```ruby
-sender.send({this_is: "my data hash"},
+sender.send_message({this_is: "my data hash"},
                "some.routing.key",
                verbose: true
                )
