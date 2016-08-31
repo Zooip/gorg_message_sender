@@ -59,7 +59,7 @@ class GorgMessageSender
 
   protected
 
-  def start(opts)
+  def conn
     @conn||=Bunny.new(
       :hostname => @r_host,
       :port => @r_port,
@@ -67,11 +67,17 @@ class GorgMessageSender
       :pass => @r_pass,
       :vhost => @r_vhost
       )
-    @conn.start
-    ch = @conn.create_channel
+    @conn.start unless @_conn.connected?
+    @conn
+  end
+
+  def ch
+    @_ch = (@_ch && @_ch.status == :open) ? @_ch : conn.create_channe
+  end
+
+  def start(opts)
     @x  = ch.topic(@r_exchange, :durable => @r_durable)
     puts " [#] Connected as user '#{@r_user}' to #{@r_host}:#{@r_port} on vhost '#{@r_vhost}'" if opts[:verbose]
-
   end
 
   def stop(opts)
