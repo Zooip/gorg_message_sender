@@ -24,7 +24,7 @@ class GorgMessageSender
     @r_durable=durable_exchange
   end
 
-  def message(data,routing_key, opts={})
+  def self.to_message(data,routing_key, opts={})
     json_msg={
       "event_uuid" => opts[:event_uuid]||SecureRandom.uuid,
       "event_name" => routing_key,
@@ -40,7 +40,7 @@ class GorgMessageSender
     self.start(verbose: opts[:verbose])
     p_opts={}
     p_opts[:routing_key]= routing_key if routing_key
-    msg=message(data,routing_key,opts)
+    msg=self.class.to_message(data,routing_key,opts)
     @x.publish(msg, p_opts)
     puts " [#] Message sent to exchange '#{@r_exchange}' (#{@r_durable ? "" : "not "}durable) with routing key '#{routing_key}'" if opts[:verbose]
     msg
