@@ -55,6 +55,33 @@ class GorgMessageSender
     msg
   end
 
+  def send_batch_raw(msgs,opts={})
+    p_opts={}
+
+    require 'thread'
+    work_q = Queue.new
+
+    msgs.each do |msg|
+      work_q.push msg
+    end
+    
+    workers = (0...4).map do
+      Thread.new do
+        begin
+          while x = work_q.pop(true)
+            chan=conn.create_channel
+            x=chan.topic(@r_exchange, :durable => @r_durable)
+            p_opts[:routing_key]= msg[:routing_key]
+            x.publish(msg[:content], p_opts)
+            puts " [#] Message sent to exchange '#{@r_exchange}' (#{@r_durable ? "" : "not "}durable) with routing key '#{routing_key}'" if opts[:verbose]
+          end
+        rescue ThreadError
+        end
+      end
+    end; "ok"
+    workers.map(&:join); "ok"
+  end
+
   protected
 
   def conn
