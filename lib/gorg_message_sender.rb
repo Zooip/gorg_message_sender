@@ -70,7 +70,7 @@ class GorgMessageSender
   end
 
   def ch
-    @_ch = (@_ch && @_ch.status == :open) ? @_ch : conn.create_channe
+    @_ch = (@_ch && @_ch.status == :open) ? @_ch : conn.create_channel
   end
 
   def start(opts)
