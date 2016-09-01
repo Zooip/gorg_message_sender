@@ -24,7 +24,7 @@ class GorgMessageSender
     @r_durable=durable_exchange
   end
 
-  def self.to_message(data,routing_key, opts={})
+  def to_message(data,routing_key, opts={})
     json_msg={
       "event_uuid" => opts[:event_uuid]||SecureRandom.uuid,
       "event_name" => routing_key,
@@ -40,7 +40,7 @@ class GorgMessageSender
     self.start(verbose: opts[:verbose])
     p_opts={}
     p_opts[:routing_key]= routing_key if routing_key
-    msg=self.class.to_message(data,routing_key,opts)
+    msg=self.to_message(data,routing_key,opts)
     @x.publish(msg, p_opts)
     puts " [#] Message sent to exchange '#{@r_exchange}' (#{@r_durable ? "" : "not "}durable) with routing key '#{routing_key}'" if opts[:verbose]
     msg
@@ -58,28 +58,39 @@ class GorgMessageSender
   def send_batch_raw(msgs,opts={})
     p_opts={}
 
+    send_batch_raw_with_threads(msgs,opts={})
+
+
+  end
+
+  def send_batch_raw_with_threads(msgs,opts={})
     require 'thread'
+    nb_of_threads=4
+    batch_size=(msgs.count/nb_of_threads.to_f).ceil.to_i
+
     work_q = Queue.new
 
-    msgs.each do |msg|
-      work_q.push msg
+    msgs.each_slice(batch_size) do |msg_batch|
+      work_q.push msg_batch
     end
     
-    workers = (0...4).map do
-      Thread.new do
-        begin
-          while x = work_q.pop(true)
-            chan=conn.create_channel
-            x=chan.topic(@r_exchange, :durable => @r_durable)
-            p_opts[:routing_key]= msg[:routing_key]
-            x.publish(msg[:content], p_opts)
-            puts " [#] Message sent to exchange '#{@r_exchange}' (#{@r_durable ? "" : "not "}durable) with routing key '#{routing_key}'" if opts[:verbose]
-          end
-        rescue ThreadError
+    workers=[]
+    (1..nb_of_threads).each do |worker_id|
+      workers << Thread.new do
+        while (msg_pool = work_q.pop(true) rescue nil)
+          x=conn.create_channel.topic(@r_exchange, :durable => @r_durable)
+          msg_pool.each{|msg| x.publish(msg[:content], :routing_key => msg[:routing_key])}
         end
       end
-    end; "ok"
+    end;
     workers.map(&:join); "ok"
+  end
+
+  def send_batch_raw_without_threads(msgs,opts={})
+    x=conn.create_channel.topic(@r_exchange, :durable => @r_durable)
+    msgs.each do |msg|
+      x.publish(msg[:content], :routing_key => msg[:routing_key])
+    end
   end
 
   protected
