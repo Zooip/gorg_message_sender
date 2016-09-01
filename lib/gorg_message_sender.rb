@@ -43,7 +43,6 @@ class GorgMessageSender
     msg=message(data,routing_key,opts)
     @x.publish(msg, p_opts)
     puts " [#] Message sent to exchange '#{@r_exchange}' (#{@r_durable ? "" : "not "}durable) with routing key '#{routing_key}'" if opts[:verbose]
-    self.stop(verbose: opts[:verbose])
     msg
   end
 
@@ -53,7 +52,6 @@ class GorgMessageSender
     p_opts[:routing_key]= routing_key if routing_key
     @x.publish(msg, p_opts)
     puts " [#] Message sent to exchange '#{@r_exchange}' (#{@r_durable ? "" : "not "}durable) with routing key '#{routing_key}'" if opts[:verbose]
-    self.stop(verbose: opts[:verbose])
     msg
   end
 
@@ -67,7 +65,7 @@ class GorgMessageSender
       :pass => @r_pass,
       :vhost => @r_vhost
       )
-    @conn.start unless @_conn.connected?
+    @conn.start unless @conn.connected?
     @conn
   end
 
@@ -78,10 +76,5 @@ class GorgMessageSender
   def start(opts)
     @x  = ch.topic(@r_exchange, :durable => @r_durable)
     puts " [#] Connected as user '#{@r_user}' to #{@r_host}:#{@r_port} on vhost '#{@r_vhost}'" if opts[:verbose]
-  end
-
-  def stop(opts)
-    @conn.close
-    puts " [#] Connection closed" if opts[:verbose]
   end
 end
