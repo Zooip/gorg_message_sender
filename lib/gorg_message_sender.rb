@@ -57,41 +57,12 @@ class GorgMessageSender
 
   def send_batch_raw(msgs,opts={})
     p_opts={}
-
-    send_batch_raw_with_threads(msgs,opts={})
-
-
-  end
-
-  def send_batch_raw_with_threads(msgs,opts={})
-    require 'thread'
-    nb_of_threads=4
-    batch_size=(msgs.count/nb_of_threads.to_f).ceil.to_i
-
-    work_q = Queue.new
-
-    msgs.each_slice(batch_size) do |msg_batch|
-      work_q.push msg_batch
-    end
-    
-    workers=[]
-    (1..nb_of_threads).each do |worker_id|
-      workers << Thread.new do
-        while (msg_pool = work_q.pop(true) rescue nil)
-          x=conn.create_channel.topic(@r_exchange, :durable => @r_durable)
-          msg_pool.each{|msg| x.publish(msg[:content], :routing_key => msg[:routing_key])}
-        end
-      end
-    end;
-    workers.map(&:join); "ok"
-  end
-
-  def send_batch_raw_without_threads(msgs,opts={})
     x=conn.create_channel.topic(@r_exchange, :durable => @r_durable)
     msgs.each do |msg|
-      x.publish(msg[:content], :routing_key => msg[:routing_key])
+      x.publish(msg[:content], routing_key: msg[:routing_key] )
     end
   end
+
 
   protected
 
