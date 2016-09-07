@@ -35,6 +35,7 @@ class GorgMessageSender
     JSON::Validator.validate!(GorgMessageSender::JSON_SCHEMA,json_msg) unless opts[:skip_validation]
     json_msg
   end
+  alias_method :message, :to_message
 
   def send_message(data,routing_key,opts={})
     self.start(verbose: opts[:verbose])
