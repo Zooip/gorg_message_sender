@@ -57,10 +57,10 @@ class GorgMessageSender
   end
 
   def send_batch_raw(msgs,opts={})
+    self.start(verbose: opts[:verbose])
     p_opts={}
-    x=conn.create_channel.topic(@r_exchange, :durable => @r_durable)
     msgs.each do |msg|
-      x.publish(msg[:content], routing_key: msg[:routing_key] )
+      @x.publish(msg[:content], routing_key: msg[:routing_key] )
     end
   end
 
