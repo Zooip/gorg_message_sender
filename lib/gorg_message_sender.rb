@@ -68,7 +68,16 @@ class GorgMessageSender
   protected
 
   def conn_id
-    URI.escape("amqp://#{@r_user}:#{@r_pass}@#{@r_host}:#{@r_port}/#{@r_vhost}")
+    userpart=""
+    if @r_user
+      userpart=URI.escape(@r_user.to_s,"@:/")
+      userpart+=":#{URI.escape(@r_pass.to_s,'%@:/\#')}" if @r_pass
+      userpart+="@"
+    end
+    portpart= @r_port ? ":#{URI.escape(@r_port.to_s,"@:/")}" : ""
+    vhostpart= @r_vhost ? "/#{URI.escape(@r_vhost.to_s,"@:/")}" : ""
+
+    "amqp://#{userpart}#{URI.escape(@r_host,"@:/")}#{portpart}#{vhostpart}"
   end
 
   def self.conn(url)
