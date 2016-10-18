@@ -68,7 +68,7 @@ class GorgMessageSender
   protected
 
   def conn_id
-    "amqp://#{@r_user}:#{@r_pass}@#{@r_host}:#{@r_port}/#{@r_vhost}"
+    URI.escape("amqp://#{@r_user}:#{@r_pass}@#{@r_host}:#{@r_port}/#{@r_vhost}")
   end
 
   def self.conn(url)
