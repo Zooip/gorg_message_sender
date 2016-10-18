@@ -67,20 +67,19 @@ class GorgMessageSender
 
   protected
 
-  def conn
-    @conn||=Bunny.new(
-      :hostname => @r_host,
-      :port => @r_port,
-      :user => @r_user,
-      :pass => @r_pass,
-      :vhost => @r_vhost
-      )
-    @conn.start unless @conn.connected?
-    @conn
+  def conn_id
+    "amqp://#{@r_user}:#{@r_pass}@#{@r_host}:#{@r_port}/#{@r_vhost}"
+  end
+
+  def self.conn(url)
+    @conns=Hash.new(nil)
+    @conns[url]||=Bunny.new(url)
+    @conns[url].start unless @conns[url].connected?
+    @conns[url]
   end
 
   def ch
-    @_ch = (@_ch && @_ch.status == :open) ? @_ch : conn.create_channel
+    @_ch = (@_ch && @_ch.status == :open) ? @_ch : self.class.conn(conn_id).create_channel
   end
 
   def start(opts)
