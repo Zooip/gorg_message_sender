@@ -71,7 +71,7 @@ class GorgMessageSender
     userpart=""
     if @r_user
       userpart=URI.escape(@r_user.to_s,"@:/")
-      userpart+=":#{URI.escape(@r_pass.to_s,'%@:/\#')}" if @r_pass
+      userpart+=":#{URI.escape(@r_pass.to_s,'%@:/\#^')}" if @r_pass
       userpart+="@"
     end
     portpart= @r_port ? ":#{URI.escape(@r_port.to_s,"@:/")}" : ""
@@ -81,7 +81,7 @@ class GorgMessageSender
   end
 
   def self.conn(url)
-    @conns=Hash.new(nil)
+    @conns||=Hash.new(nil)
     @conns[url]||=Bunny.new(url)
     @conns[url].start unless @conns[url].connected?
     @conns[url]
