@@ -6,6 +6,9 @@ require "json"
 require 'securerandom'
 
 class GorgMessageSender
+
+
+
   def initialize(host: self.class.configuration.host,
                  port: self.class.configuration.port,
                  user: self.class.configuration.user,
@@ -13,7 +16,10 @@ class GorgMessageSender
                  exchange_name:self.class.configuration.exchange_name,
                  vhost: self.class.configuration.vhost,
                  app_id: self.class.configuration.application_id,
-                 durable_exchange: self.class.configuration.durable_exchange)
+                 durable_exchange: self.class.configuration.durable_exchange,
+                 logger: Logger.new(STDOUT)
+
+                )
     @r_host=host
     @r_port=port
     @r_user=user
@@ -22,6 +28,7 @@ class GorgMessageSender
     @r_vhost=vhost
     @app_id=app_id
     @r_durable=durable_exchange
+    @logger=logger
   end
 
   def to_message(data,routing_key, opts={})
@@ -38,18 +45,13 @@ class GorgMessageSender
   alias_method :message, :to_message
 
   def send_message(data,routing_key,opts={})
-    self.start(verbose: opts[:verbose])
-    p_opts={}
-    p_opts[:routing_key]= routing_key if routing_key
     msg=self.to_message(data,routing_key,opts)
-    @x.publish(msg, p_opts)
-    puts " [#] Message sent to exchange '#{@r_exchange}' (#{@r_durable ? "" : "not "}durable) with routing key '#{routing_key}'" if opts[:verbose]
-    msg
+    send_raw(msg,routing_key,opts)
   end
 
   def send_raw(msg,routing_key,opts={})
     self.start(verbose: opts[:verbose])
-    p_opts={}
+    p_opts=opts[:bunny_opts].to_h
     p_opts[:routing_key]= routing_key if routing_key
     @x.publish(msg, p_opts)
     puts " [#] Message sent to exchange '#{@r_exchange}' (#{@r_durable ? "" : "not "}durable) with routing key '#{routing_key}'" if opts[:verbose]
@@ -60,24 +62,28 @@ class GorgMessageSender
     self.start(verbose: opts[:verbose])
     p_opts={}
     msgs.each do |msg|
-      @x.publish(msg[:content], routing_key: msg[:routing_key] )
+      p_opts=msg[:bunny_opts].to_h
+      p_opts[:routing_key]= msg[:routing_key]
+      @x.publish(msg[:content], p_opts )
     end
   end
 
 
   protected
 
+  ESCAPED_CHARACTERS='%@:/\#^'
+
   def conn_id
     userpart=""
     if @r_user
-      userpart=URI.escape(@r_user.to_s,"@:/")
-      userpart+=":#{URI.escape(@r_pass.to_s,'%@:/\#^')}" if @r_pass
+      userpart=URI.escape(@r_user.to_s,ESCAPED_CHARACTERS)
+      userpart+=":#{URI.escape(@r_pass.to_s,ESCAPED_CHARACTERS)}" if @r_pass
       userpart+="@"
     end
-    portpart= @r_port ? ":#{URI.escape(@r_port.to_s,"@:/")}" : ""
-    vhostpart= @r_vhost ? "/#{URI.escape(@r_vhost.to_s,"@:/")}" : ""
+    portpart= @r_port ? ":#{URI.escape(@r_port.to_s,ESCAPED_CHARACTERS)}" : ""
+    vhostpart= @r_vhost ? "/#{URI.escape(@r_vhost.to_s,ESCAPED_CHARACTERS)}" : ""
 
-    "amqp://#{userpart}#{URI.escape(@r_host,"@:/")}#{portpart}#{vhostpart}"
+    "amqp://#{userpart}#{URI.escape(@r_host,ESCAPED_CHARACTERS)}#{portpart}#{vhostpart}"
   end
 
   def self.conn(url)
