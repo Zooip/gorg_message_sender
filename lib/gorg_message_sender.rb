@@ -71,7 +71,7 @@ class GorgMessageSender
 
   protected
 
-  ESCAPED_CHARACTERS='%@:/\#^'
+  ESCAPED_CHARACTERS='%@:/\#^{}'
 
   def conn_id
     userpart=""
